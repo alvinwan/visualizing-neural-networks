@@ -32,14 +32,13 @@ def get_model():
     return net, layer
 
 
-def main():
-    """Generate CAM for network's predicted class"""
-    x = load_image()
+def compute_cam(net, layer, pred):
+    """Compute class activation maps
 
-    net, layer = get_model()
-
-    out = net(x)
-    _, (pred,) = torch.max(out, 1)  # get class with highest probability
+    :param net: network that ran inference
+    :param layer: layer to compute cam on
+    :param int pred: prediction to compute cam for
+    """
 
     # 1. get second-to-last-layer output
     features = layer._parameters['out'][0]
@@ -54,7 +53,10 @@ def main():
     cam -= cam.min()
     cam /= cam.max()
     cam = cam.detach().numpy()
+    return cam
 
+
+def save_cam(cam):
     # save heatmap
     heatmap = (cm.jet_r(cam) * 255.0)[..., 2::-1].astype(np.uint8)
     heatmap = Image.fromarray(heatmap).resize((224, 224))
@@ -67,6 +69,17 @@ def main():
     Image.fromarray(combined).save('combined.jpg')
     print(' * Wrote heatmap on image to combined.jpg')
 
+
+def main():
+    """Generate CAM for network's predicted class"""
+    x = load_image()
+    net, layer = get_model()
+
+    out = net(x)
+    _, (pred,) = torch.max(out, 1)  # get class with highest probability
+
+    cam = compute_cam(net, layer, pred)
+    save_cam(cam)
 
 
 if __name__ == '__main__':
