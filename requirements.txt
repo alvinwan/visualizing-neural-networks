@@ -1,0 +1,4 @@
+opencv-python==3.3.0.9
+numpy==1.13.3
+torch==1.4.0
+nbdt==0.0.4
